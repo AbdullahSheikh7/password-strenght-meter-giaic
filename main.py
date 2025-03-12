@@ -9,10 +9,23 @@ if "password" not in st.session_state or "password_status" not in st.session_sta
 suggestions_list = []
 password_status = ""
 
-def generate_strong_password():
-    characters = string.ascii_letters + string.digits + string.punctuation
-    password = ''.join(random.sample(characters, 8))
-    return password
+def generate_strong_password(length=12):
+
+    if length < 8:
+        raise ValueError("Password length must be at least 8 characters.")
+
+    upper = random.choice(string.ascii_uppercase)
+    lower = random.choice(string.ascii_lowercase)
+    digit = random.choice(string.digits)
+    special = random.choice("!@#$%^&*")
+
+    all_chars = string.ascii_letters + string.digits + string.punctuation
+    other_chars = ''.join(random.choices(all_chars, k=length - 4))
+
+    password_list = list(upper + lower + digit + special + other_chars)
+    random.shuffle(password_list)
+    
+    return ''.join(password_list)
 
 def password_score(password):
     global suggestions_list
@@ -41,11 +54,11 @@ def password_score(password):
         suggestions_list.append("❌ Include at least one special character (!@#$%^&*).")
 
     if st.session_state.score >= 4:
-        password_status = "✅ Strong Password!"
+        password_status = "✅ Strong"
     elif st.session_state.score == 3:
-        password_status = "⚠️ Moderate Password - Consider adding more security features."
+        password_status = "⚠️ Moderate"
     else:
-        password_status = "❌ Weak Password - Improve it using the suggestions above."
+        password_status = "❌ Weak"
 
 if "suggested_password" not in st.session_state:
     st.session_state.suggested_password = generate_strong_password()
@@ -85,6 +98,6 @@ def update_scores():
         suggestion_container.markdown(suggestion)
 
 with col1:
-    st.session_state.password = st.text_input("Enter your password", type="password", value=st.session_state.password, on_change=update_scores)
+    st.session_state.password = st.text_input("Enter your password", type="password", value=st.session_state.password)
 
     st.button("Check Password Strength", on_click=update_scores)
